@@ -12,7 +12,7 @@ namespace FastColoredTextBoxNS
     /// Popup menu for autocomplete
     /// </summary>
     [Browsable(false)]
-    public class AutocompleteMenu : ToolStripDropDown, IDisposable
+    public class AutocompleteMenu : ToolStripDropDown
     {
         AutocompleteListView listView;
         public ToolStripControlHost host;
@@ -86,7 +86,6 @@ namespace FastColoredTextBoxNS
             listView.Parent = this;
             SearchPattern = @"[\w\.]";
             MinFragmentLength = 2;
-
         }
 
         public new Font Font
@@ -184,13 +183,6 @@ namespace FastColoredTextBoxNS
             get { return Items.toolTip; }
             set { Items.toolTip = value; }
         }
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-            if (listView != null && !listView.IsDisposed)
-                listView.Dispose();
-        }
     }
 
     [System.ComponentModel.ToolboxItem(false)]
@@ -272,32 +264,24 @@ namespace FastColoredTextBoxNS
             Form form = tb.FindForm();
             if (form != null)
             {
-                form.LocationChanged += delegate { SafetyClose(); };
-                form.ResizeBegin += delegate { SafetyClose(); };
-                form.FormClosing += delegate { SafetyClose(); };
-                form.LostFocus += delegate { SafetyClose(); };
+                form.LocationChanged += (o, e) => Menu.Close();
+                form.ResizeBegin += (o, e) => Menu.Close();
+                form.FormClosing += (o, e) => Menu.Close();
+                form.LostFocus += (o, e) => Menu.Close();
             }
 
             tb.LostFocus += (o, e) =>
             {
-                if (Menu != null && !Menu.IsDisposed)
-                if (!Menu.Focused) 
-                    SafetyClose();
+                if (!Menu.Focused) Menu.Close();
             };
 
-            tb.Scroll += delegate { SafetyClose(); };
+            tb.Scroll += (o, e) => Menu.Close();
 
             this.VisibleChanged += (o, e) =>
             {
                 if (this.Visible)
                     DoSelectedVisible();
             };
-        }
-
-        void SafetyClose()
-        {
-            if (Menu != null && !Menu.IsDisposed)
-                Menu.Close();
         }
 
         void tb_KeyPressed(object sender, KeyPressEventArgs e)

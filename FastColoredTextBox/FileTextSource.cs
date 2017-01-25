@@ -88,51 +88,19 @@ namespace FastColoredTextBoxNS
             sourceFileLinePositions.Add((int)fs.Position);
             base.lines.Add(null);
             //other lines
-            sourceFileLinePositions.Capacity = (int)(length/7 + 1000);
-
-            //int prev = 0;
-            //while(fs.Position < length)
-            //{
-            //    var b = fs.ReadByte();
-
-            //    if (b == 10)// \n
-            //    {
-            //        sourceFileLinePositions.Add((int)(fs.Position) + shift);
-            //        base.lines.Add(null);
-            //    }else
-            //    if (prev == 13)// \r (Mac format)
-            //    {
-            //        sourceFileLinePositions.Add((int)(fs.Position - 1) + shift);
-            //        base.lines.Add(null);
-            //        SaveEOL = "\r";
-            //    }
-
-            //    prev = b;
-            //}
-
-            //if (prev == 13)
-            //{
-            //    sourceFileLinePositions.Add((int)(fs.Position) + shift);
-            //    base.lines.Add(null);
-            //}
-
             int prev = 0;
-            int prevPos = 0;
-            BinaryReader br = new BinaryReader(fs, enc);
-            while (fs.Position < length)
+            while(fs.Position < length)
             {
-                prevPos = (int)fs.Position;
-                var b = br.ReadChar();
+                var b = fs.ReadByte();
 
                 if (b == 10)// \n
                 {
-                    sourceFileLinePositions.Add((int)fs.Position);
+                    sourceFileLinePositions.Add((int)(fs.Position) + shift);
                     base.lines.Add(null);
-                }
-                else
+                }else
                 if (prev == 13)// \r (Mac format)
                 {
-                    sourceFileLinePositions.Add((int)prevPos);
+                    sourceFileLinePositions.Add((int)(fs.Position - 1) + shift);
                     base.lines.Add(null);
                     SaveEOL = "\r";
                 }
@@ -142,15 +110,11 @@ namespace FastColoredTextBoxNS
 
             if (prev == 13)
             {
-                sourceFileLinePositions.Add((int)prevPos);
+                sourceFileLinePositions.Add((int)(fs.Position) + shift);
                 base.lines.Add(null);
             }
 
-            if(length > 2000000)
-                GC.Collect();
-
             Line[] temp = new Line[100];
-
             var c = base.lines.Count;
             base.lines.AddRange(temp);
             base.lines.TrimExcess();
@@ -479,14 +443,6 @@ namespace FastColoredTextBoxNS
             this.DisplayedLineIndex = displayedLineIndex;
             this.DisplayedLineText = displayedLineText;
             this.SavedText = displayedLineText;
-        }
-    }
-
-    class CharReader : TextReader
-    {
-        public override int Read()
-        {
-            return base.Read();
         }
     }
 }

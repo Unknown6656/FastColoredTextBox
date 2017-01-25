@@ -15,17 +15,16 @@ namespace Tester
 
             //create autocomplete popup menu
             popupMenu = new FastColoredTextBoxNS.AutocompleteMenu(fctb);
-            popupMenu.MinFragmentLength = 2;
+            popupMenu.MinFragmentLength = 0;
 
             //generate 456976 words
             var randomWords = new List<string>();
-            int codeA = Convert.ToInt32('a');
+            
             for (int i = 0; i < 26; i++)
-            for (int j = 0; j < 26; j++)
-            for (int k = 0; k < 26; k++)
-            for (int l = 0; l < 26; l++)
-                randomWords.Add(
-                    new string(new char[]{Convert.ToChar(i + codeA), Convert.ToChar(j + codeA), Convert.ToChar(k + codeA), Convert.ToChar(l + codeA)}));
+                for (int j = 0; j < 26; j++)
+                    for (int k = 0; k < 26; k++)
+                        for (int l = 0; l < 26; l++)
+                            randomWords.Add(new string(new char[]{ (char)(i + 'a'), (char)(j + 'a'), (char)(k + 'a'), (char)(l + 'a') }));
 
             //set words as autocomplete source
             popupMenu.Items.SetAutocompleteItems(randomWords);

@@ -1,13 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Drawing;
+﻿using System.Collections.Generic;
 using System.Windows.Forms;
+using System.Drawing;
+using System.Text;
+using System;
 
 namespace FastColoredTextBoxNS
 {
+
     public class VisualMarker
     {
+
+        public Image MinusImage { set; get; }
+        public Image PlusImage { set; get; }
+        public bool DrawImage { set; get; }
         public readonly Rectangle rectangle;
 
         public VisualMarker(Rectangle rectangle)
@@ -25,7 +30,8 @@ namespace FastColoredTextBoxNS
         }
     }
 
-    public class CollapseFoldingMarker: VisualMarker
+    public class CollapseFoldingMarker
+        : VisualMarker
     {
         public readonly int iLine;
 
@@ -35,16 +41,22 @@ namespace FastColoredTextBoxNS
             this.iLine = iLine;
         }
 
+        //draw minus
         public void Draw(Graphics gr, Pen pen, Brush backgroundBrush, Pen forePen)
         {
-            //draw minus
-            gr.FillRectangle(backgroundBrush, rectangle);
-            gr.DrawRectangle(pen, rectangle);
-            gr.DrawLine(forePen, rectangle.Left + 2, rectangle.Top + rectangle.Height / 2, rectangle.Right - 2, rectangle.Top + rectangle.Height / 2);
+            if (DrawImage && (MinusImage != null))
+                gr.DrawImage(MinusImage, rectangle);
+            else
+            {
+                gr.FillRectangle(backgroundBrush, rectangle);
+                gr.DrawRectangle(pen, rectangle);
+                gr.DrawLine(forePen, rectangle.Left + 2, rectangle.Top + rectangle.Height / 2, rectangle.Right - 2, rectangle.Top + rectangle.Height / 2);
+            }
         }
     }
 
-    public class ExpandFoldingMarker : VisualMarker
+    public class ExpandFoldingMarker
+        : VisualMarker
     {
         public readonly int iLine;
 
@@ -54,17 +66,23 @@ namespace FastColoredTextBoxNS
             this.iLine = iLine;
         }
 
+        //draw plus
         public void Draw(Graphics gr, Pen pen,  Brush backgroundBrush, Pen forePen)
         {
-            //draw plus
-            gr.FillRectangle(backgroundBrush, rectangle);
-            gr.DrawRectangle(pen, rectangle);
-            gr.DrawLine(forePen, rectangle.Left + 2, rectangle.Top + rectangle.Height / 2, rectangle.Right - 2, rectangle.Top + rectangle.Height / 2);
-            gr.DrawLine(forePen, rectangle.Left + rectangle.Width / 2, rectangle.Top + 2, rectangle.Left + rectangle.Width / 2, rectangle.Bottom - 2);
+            if (DrawImage && (PlusImage != null))
+                gr.DrawImage(PlusImage, rectangle);
+            else
+            {
+                gr.FillRectangle(backgroundBrush, rectangle);
+                gr.DrawRectangle(pen, rectangle);
+                gr.DrawLine(forePen, rectangle.Left + 2, rectangle.Top + rectangle.Height / 2, rectangle.Right - 2, rectangle.Top + rectangle.Height / 2);
+                gr.DrawLine(forePen, rectangle.Left + rectangle.Width / 2, rectangle.Top + 2, rectangle.Left + rectangle.Width / 2, rectangle.Bottom - 2);
+            }
         }
     }
 
-    public class FoldedAreaMarker : VisualMarker
+    public class FoldedAreaMarker
+        : VisualMarker
     {
         public readonly int iLine;
 
@@ -80,7 +98,8 @@ namespace FastColoredTextBoxNS
         }
     }
 
-    public class StyleVisualMarker : VisualMarker
+    public class StyleVisualMarker
+        : VisualMarker
     {
         public Style Style{get;private set;}
 
@@ -91,7 +110,8 @@ namespace FastColoredTextBoxNS
         }
     }
 
-    public class VisualMarkerEventArgs : MouseEventArgs
+    public class VisualMarkerEventArgs
+        : MouseEventArgs
     {
         public Style Style { get; private set; }
         public StyleVisualMarker Marker { get; private set; }

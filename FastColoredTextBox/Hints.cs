@@ -57,7 +57,7 @@ namespace FastColoredTextBoxNS
 
         private void LayoutHint(Hint hint)
         {
-            if (hint.Inline)
+            if (hint.Inline || hint.Range.Start.iLine >= tb.LinesCount - 1)
             {
                 if (hint.Range.Start.iLine < tb.LineInfos.Count - 1)
                     hint.HostPanel.Top = tb.LineInfos[hint.Range.Start.iLine + 1].startY - hint.TopPadding - hint.HostPanel.Height - tb.VerticalScroll.Value;
@@ -66,25 +66,7 @@ namespace FastColoredTextBoxNS
             }
             else
             {
-                if (hint.Range.Start.iLine > tb.LinesCount - 1) return;
-                if (hint.Range.Start.iLine == tb.LinesCount - 1)
-                {
-                    var y = tb.LineInfos[hint.Range.Start.iLine].startY - tb.VerticalScroll.Value + tb.CharHeight;
-
-                    if (y + hint.HostPanel.Height + 1 > tb.ClientRectangle.Bottom)
-                    {
-                        hint.HostPanel.Top = Math.Max(0, tb.LineInfos[hint.Range.Start.iLine].startY - tb.VerticalScroll.Value - hint.HostPanel.Height);
-                    }
-                    else
-                        hint.HostPanel.Top = y;
-
-                }
-                else
-                {
-                    hint.HostPanel.Top = tb.LineInfos[hint.Range.Start.iLine + 1].startY - tb.VerticalScroll.Value;
-                    if (hint.HostPanel.Bottom > tb.ClientRectangle.Bottom)
-                        hint.HostPanel.Top = tb.LineInfos[hint.Range.Start.iLine + 1].startY - tb.CharHeight - hint.TopPadding - hint.HostPanel.Height - tb.VerticalScroll.Value;
-                }
+                hint.HostPanel.Top = tb.LineInfos[hint.Range.Start.iLine + 1].startY - tb.VerticalScroll.Value;
             }
 
             if (hint.Dock == DockStyle.Fill)
@@ -97,10 +79,7 @@ namespace FastColoredTextBoxNS
                 var p1 = tb.PlaceToPoint(hint.Range.Start);
                 var p2 = tb.PlaceToPoint(hint.Range.End);
                 var cx = (p1.X + p2.X) / 2;
-                var x = cx - hint.HostPanel.Width / 2;
-                hint.HostPanel.Left = Math.Max( tb.LeftIndent, x);
-                if(hint.HostPanel.Right > tb.ClientSize.Width)
-                    hint.HostPanel.Left = Math.Max(tb.LeftIndent, x - (hint.HostPanel.Right - tb.ClientSize.Width));
+                hint.HostPanel.Left = Math.Max( tb.LeftIndent, cx - hint.HostPanel.Width / 2);
             }
         }
 
@@ -152,7 +131,7 @@ namespace FastColoredTextBoxNS
         {
             items.Add(hint);
 
-            if (hint.Inline/* || hint.Range.Start.iLine >= tb.LinesCount - 1*/)
+            if (hint.Inline || hint.Range.Start.iLine >= tb.LinesCount - 1)
             {
                 var li = tb.LineInfos[hint.Range.Start.iLine];
                 hint.TopPadding = li.bottomPadding;
@@ -290,8 +269,6 @@ namespace FastColoredTextBoxNS
         public virtual void DoVisible()
         {
             Range.tb.DoRangeVisible(Range, true);
-            Range.tb.DoVisibleRectangle(HostPanel.Bounds);
-            
             Range.tb.Invalidate();
         }
 
@@ -356,20 +333,11 @@ namespace FastColoredTextBoxNS
             HostPanel = new UnfocusablePanel();
             HostPanel.Click += OnClick;
 
-            Cursor = Cursors.Default;
-            BorderColor = Color.Silver;
-            BackColor2 = Color.White;
-            BackColor = InnerControl == null ? Color.Silver : SystemColors.Control;
-            ForeColor = Color.Black;
-            TextAlignment = StringAlignment.Near;
-            Font = Range.tb.Parent == null ? Range.tb.Font : Range.tb.Parent.Font;
-
             if (InnerControl != null)
             {
                 HostPanel.Controls.Add(InnerControl);
-                var size = InnerControl.GetPreferredSize(InnerControl.Size);
-                HostPanel.Width = size.Width + 2;
-                HostPanel.Height = size.Height + 2;
+                HostPanel.Width = InnerControl.Width + 2;
+                HostPanel.Height = InnerControl.Height + 2;
                 InnerControl.Dock = DockStyle.Fill;
                 InnerControl.Visible = true;
                 BackColor = SystemColors.Control;
@@ -378,6 +346,14 @@ namespace FastColoredTextBoxNS
             {
                 HostPanel.Height = Range.tb.CharHeight + 5;
             }
+
+            Cursor = Cursors.Default;
+            BorderColor = Color.Silver;
+            BackColor2 = Color.White;
+            BackColor = InnerControl == null ? Color.Silver : SystemColors.Control;
+            ForeColor = Color.Black;
+            TextAlignment = StringAlignment.Near;
+            Font = Range.tb.Parent == null ? Range.tb.Font : Range.tb.Parent.Font;
         }
 
         protected virtual void OnClick(object sender, EventArgs e)

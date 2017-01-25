@@ -6,9 +6,9 @@
 //
 //  License: GNU Lesser General Public License (LGPLv3)
 //
-//  Email: pavel_torgashov@ukr.net
+//  Email: pavel_torgashov@ukr.net.
 //
-//  Copyright (C) Pavel Torgashov, 2011-2016. 
+//  Copyright (C) Pavel Torgashov, 2011-2014. 
 
 // #define debug
 
@@ -21,30 +21,34 @@
 //
 // #define Styles32
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Design;
-using System.Drawing.Drawing2D;
-using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Windows.Forms;
 using System.Windows.Forms.Design;
+using System.Collections.Generic;
+using System.Drawing.Drawing2D;
+using System.Drawing.Design;
+using System.ComponentModel;
+using System.Windows.Forms;
+using System.Diagnostics;
+using System.Reflection;
+using System.Threading;
 using Microsoft.Win32;
+using System.Drawing;
+using System.Text;
+using System.IO;
+using System;
+
 using Timer = System.Windows.Forms.Timer;
 
 namespace FastColoredTextBoxNS
 {
+
     /// <summary>
     /// Fast colored textbox
     /// </summary>
-    public partial class FastColoredTextBox : UserControl, ISupportInitialize
+    public partial class FastColoredTextBox
+        : UserControl
+        , ISupportInitialize
     {
         internal const int minLeftIndent = 8;
         private const int maxBracketSearchIterations = 1000;
@@ -138,8 +142,12 @@ namespace FastColoredTextBoxNS
             if (theProvider.GetType() != typeof (FCTBDescriptionProvider))
                 TypeDescriptor.AddProvider(new FCTBDescriptionProvider(GetType()), GetType());
             //drawing optimization
-            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
+            SetStyle(ControlStyles.AllPaintingInWmPaint, true);
+            SetStyle(ControlStyles.UserPaint, true);
+            SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
+            SetStyle(ControlStyles.ResizeRedraw, true);
             //append monospace font
+            //Font = new Font("Consolas", 9.75f, FontStyle.Regular, GraphicsUnit.Point);
             Font = new Font(FontFamily.GenericMonospace, 9.75f);
             //create one line
             InitTextSource(CreateTextSource());
@@ -218,7 +226,7 @@ namespace FastColoredTextBoxNS
             middleClickScrollingTimer.Tick += middleClickScrollingTimer_Tick;
         }
 
-        private char[] autoCompleteBracketsList = { '(', ')', '{', '}', '[', ']', '"', '"', '\'', '\'' };
+        private char[] autoCompleteBracketsList = { '(', ')', '{', '}', '[', ']', '"', '"', '\'', '\'', '<', '>' };
 
         public char[] AutoCompleteBracketsList
         {
@@ -1101,7 +1109,7 @@ namespace FastColoredTextBoxNS
         [DefaultValue(null)]
         [Description("Allows to get text from other FastColoredTextBox.")]
         //[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public FastColoredTextBox SourceTextBox
+            public FastColoredTextBox SourceTextBox
         {
             get { return sourceTextBox; }
             set
@@ -1152,9 +1160,6 @@ namespace FastColoredTextBoxNS
             get { return selection; }
             set
             {
-                if (value == selection)
-                    return;
-
                 selection.BeginUpdate();
                 selection.Start = value.Start;
                 selection.End = value.End;
@@ -1282,8 +1287,7 @@ namespace FastColoredTextBoxNS
         /// Then line breaks will be shown as selected blank character.
         /// </summary>
         [DefaultValue(true)]
-        [Description("If enabled then line ends included into the selection will be selected too. " +
-            "Then line ends will be shown as selected blank character.")]
+        [Description("If enabled then line ends included into the selection will be selected too. Then line ends will be shown as selected blank character.")]
         public bool SelectionHighlightingForLineBreaksEnabled
         {
             get { return selectionHighlightingForLineBreaksEnabled; }
@@ -1294,6 +1298,25 @@ namespace FastColoredTextBoxNS
             }
         }
 
+        [Browsable(true)]
+        [DefaultValue(false)]
+        [Description("Draws folding images instead of GDI+ rectangles.")]
+        public bool DrawImage { get; set; }
+
+        [Browsable(true)]
+        [DefaultValue(null)]
+        [Description("(-) Image.")]
+        public Image MinusImage { get; set; }
+
+        [Browsable(true)]
+        [DefaultValue(null)]
+        [Description("(+) Image.")]
+        public Image PlusImage { get; set; }
+
+        [Browsable(true)]
+        [DefaultValue(typeof(Size), "11;11")]
+        [Description("Default folding marker image size.")]
+        public Size MarkerImageSize { get; set; }
 
         [Browsable(false)]
         public FindForm findForm { get; private set; }
@@ -1344,9 +1367,7 @@ namespace FastColoredTextBoxNS
         /// </summary>
         [Browsable(true)]
         [Localizable(true)]
-        [Editor(
-            "System.ComponentModel.Design.MultilineStringEditor, System.Design, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
-            , typeof (UITypeEditor))]
+        [Editor("System.ComponentModel.Design.MultilineStringEditor, System.Design, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", typeof (UITypeEditor))]
         [SettingsBindable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         [Description("Text of the control.")]
@@ -1382,18 +1403,6 @@ namespace FastColoredTextBoxNS
                 {
                     Selection.EndUpdate();
                 }
-            }
-        }
-
-        public int TextLength
-        {
-            get
-            {
-                if (LinesCount == 0)
-                    return 0;
-                var sel = new Range(this);
-                sel.SelectAll();
-                return sel.Length;
             }
         }
 
@@ -1466,7 +1475,7 @@ namespace FastColoredTextBoxNS
         [DefaultValue(0)]
         public int SelectionLength
         {
-            get { return Selection.Length; }
+            get { return Math.Abs(PlaceToPosition(Selection.Start) - PlaceToPosition(Selection.End)); }
             set
             {
                 if (value > 0)
@@ -1487,7 +1496,6 @@ namespace FastColoredTextBoxNS
                 SetFont(value);
             }
         }
-
 
         Font baseFont;
         /// <summary>
@@ -1682,7 +1690,8 @@ namespace FastColoredTextBoxNS
         /// <param name="scrollToHint">Scrolls textbox to the hint</param>
         /// <param name="inline">Inlining. If True then hint will moves apart text</param>
         /// <param name="dock">Docking. If True then hint will fill whole line</param>
-        public virtual Hint AddHint(Range range, Control innerControl, bool scrollToHint, bool inline, bool dock)
+        public virtual Hint AddHint(Range range, Control innerControl, bool scrollToHint, bool inline,
+                                    bool dock)
         {
             var hint = new Hint(range, innerControl, inline, dock);
             Hints.Add(hint);
@@ -1763,7 +1772,7 @@ namespace FastColoredTextBoxNS
                 return;
             //get word under mouse
             var r = new Range(this, place, place);
-            string hoveredWord = r.GetFragment("[a-zA-Z]").Text;
+            string hoveredWord = r.GetFragment(@"\S").Text;
             //event handler
             var ea = new ToolTipNeededEventArgs(place, hoveredWord);
             ToolTipNeeded(this, ea);
@@ -1868,9 +1877,7 @@ namespace FastColoredTextBoxNS
         /// This event occurs with a delay relative to TextChanged, and fires only once.
         /// </summary>
         [Browsable(true)]
-        [Description(
-            "It occurs after insert, delete, clear, undo and redo operations. This event occurs with a delay relative to TextChanged, and fires only once."
-            )]
+        [Description("It occurs after insert, delete, clear, undo and redo operations. This event occurs with a delay relative to TextChanged, and fires only once.")]
         public event EventHandler<TextChangedEventArgs> TextChangedDelayed;
 
         /// <summary>
@@ -1879,9 +1886,7 @@ namespace FastColoredTextBoxNS
         /// This event occurs with a delay relative to SelectionChanged, and fires only once.
         /// </summary>
         [Browsable(true)]
-        [Description(
-            "It occurs after changing of selection. This event occurs with a delay relative to SelectionChanged, and fires only once."
-            )]
+        [Description("It occurs after changing of selection. This event occurs with a delay relative to SelectionChanged, and fires only once.")]
         public event EventHandler SelectionChangedDelayed;
 
         /// <summary>
@@ -1890,9 +1895,7 @@ namespace FastColoredTextBoxNS
         /// This event occurs with a delay relative to VisibleRangeChanged, and fires only once.
         /// </summary>
         [Browsable(true)]
-        [Description(
-            "It occurs after changing of visible range. This event occurs with a delay relative to VisibleRangeChanged, and fires only once."
-            )]
+        [Description("It occurs after changing of visible range. This event occurs with a delay relative to VisibleRangeChanged, and fires only once.")]
         public event EventHandler VisibleRangeChangedDelayed;
 
         /// <summary>
@@ -2030,12 +2033,12 @@ namespace FastColoredTextBoxNS
         {
             if (lines != null)
             {
-                lines.LineInserted -= ts_LineInserted;
-                lines.LineRemoved -= ts_LineRemoved;
-                lines.TextChanged -= ts_TextChanged;
-                lines.RecalcNeeded -= ts_RecalcNeeded;
-                lines.RecalcWordWrap -= ts_RecalcWordWrap;
-                lines.TextChanging -= ts_TextChanging;
+                ts.LineInserted -= ts_LineInserted;
+                ts.LineRemoved -= ts_LineRemoved;
+                ts.TextChanged -= ts_TextChanged;
+                ts.RecalcNeeded -= ts_RecalcNeeded;
+                ts.RecalcWordWrap -= ts_RecalcWordWrap;
+                ts.TextChanging -= ts_TextChanging;
 
                 lines.Dispose();
             }
@@ -2084,10 +2087,7 @@ namespace FastColoredTextBoxNS
             if (e.iFromLine == e.iToLine && !WordWrap && lines.Count > minLinesForAccuracy)
                 RecalcScrollByOneLine(e.iFromLine);
             else
-            {
-                NeedRecalc(false, WordWrap);
-                //needRecalc = true;
-            }
+                needRecalc = true;
         }
 
         /// <summary>
@@ -2147,27 +2147,10 @@ namespace FastColoredTextBoxNS
             if (e.Index >= 0 && e.Index < LineInfos.Count && LineInfos[e.Index].VisibleState == VisibleState.Hidden)
                 newState = VisibleState.Hidden;
 
-            if (e.Count > 100000)
-                LineInfos.Capacity = LineInfos.Count + e.Count + 1000;
-
-            var temp = new LineInfo[e.Count];
+            var temp = new List<LineInfo>(e.Count);
             for (int i = 0; i < e.Count; i++)
-            {
-                temp[i].startY = -1;
-                temp[i].VisibleState = newState;
-            }
+                temp.Add(new LineInfo(-1) {VisibleState = newState});
             LineInfos.InsertRange(e.Index, temp);
-
-            /* 
-            for (int i = 0; i < e.Count; i++)
-            {
-                LineInfos.Add(new LineInfo(-1) { VisibleState = newState });//<---- needed Insert
-                if(i % 1000000 == 0 && i > 0)
-                    GC.Collect();
-            }*/
-
-            if (e.Count > 1000000)
-                GC.Collect();
 
             OnLineInserted(e.Index, e.Count);
         }
@@ -2252,6 +2235,8 @@ namespace FastColoredTextBoxNS
 
         public void AddVisualMarker(VisualMarker marker)
         {
+            marker.DrawImage = this.DrawImage;
+
             visibleMarkers.Add(marker);
         }
 
@@ -2309,11 +2294,6 @@ namespace FastColoredTextBoxNS
 
         private void ResetTimer(Timer timer)
         {
-            if(InvokeRequired)
-            {
-                BeginInvoke(new MethodInvoker(()=>ResetTimer(timer)));
-                return;
-            }
             timer.Stop();
             if (IsHandleCreated)
                 timer.Start();
@@ -2358,7 +2338,7 @@ namespace FastColoredTextBoxNS
         /// <summary>
         /// Shows find dialog
         /// </summary>
-        public virtual void ShowFindDialog()
+        public void ShowFindDialog()
         {
             ShowFindDialog(null);
         }
@@ -2366,7 +2346,7 @@ namespace FastColoredTextBoxNS
         /// <summary>
         /// Shows find dialog
         /// </summary>
-        public virtual void ShowFindDialog(string findText)
+        public void ShowFindDialog(string findText)
         {
             if (findForm == null)
                 findForm = new FindForm(this);
@@ -2384,7 +2364,7 @@ namespace FastColoredTextBoxNS
         /// <summary>
         /// Shows replace dialog
         /// </summary>
-        public virtual void ShowReplaceDialog()
+        public void ShowReplaceDialog()
         {
             ShowReplaceDialog(null);
         }
@@ -2392,7 +2372,7 @@ namespace FastColoredTextBoxNS
         /// <summary>
         /// Shows replace dialog
         /// </summary>
-        public virtual void ShowReplaceDialog(string findText)
+        public void ShowReplaceDialog(string findText)
         {
             if (ReadOnly)
                 return;
@@ -2544,15 +2524,7 @@ namespace FastColoredTextBoxNS
             }
             else
             {
-                //copy
-                var data = new DataObject();
-                OnCreateClipboardData(data);
-                //
-                var thread = new Thread(() => SetClipboard(data));
-                thread.SetApartmentState(ApartmentState.STA);
-                thread.Start();
-                thread.Join();
-
+                Copy();
                 //remove current line
                 if (Selection.Start.iLine >= 0 && Selection.Start.iLine < LinesCount)
                 {
@@ -2673,7 +2645,6 @@ namespace FastColoredTextBoxNS
             Invalidate();
         }
 
-
         /// <summary>
         /// Clears undo and redo stacks
         /// </summary>
@@ -2750,31 +2721,6 @@ namespace FastColoredTextBoxNS
             range = range.GetIntersectionWith(Range);
             //set style for range
             range.SetStyle(style);
-
-            return range;
-        }
-
-        /// <summary>
-        /// Insert text into replaceRange and restore previous selection
-        /// </summary>
-        public virtual Range InsertTextAndRestoreSelection(Range replaceRange, string text, Style style)
-        {
-            if (text == null)
-                return null;
-
-            var oldStart = PlaceToPosition(Selection.Start);
-            var oldEnd = PlaceToPosition(Selection.End);
-            var count = replaceRange.Text.Length;
-            var pos = PlaceToPosition(replaceRange.Start);
-            //
-            Selection.BeginUpdate();
-            Selection = replaceRange;
-            var range = InsertText(text, style);
-            //
-            count = range.Text.Length - count;
-            Selection.Start = PositionToPlace(oldStart + (oldStart >= pos ? count : 0));
-            Selection.End = PositionToPlace(oldEnd + (oldEnd >= pos ? count : 0));
-            Selection.EndUpdate();
 
             return range;
         }
@@ -2894,43 +2840,8 @@ namespace FastColoredTextBoxNS
                 }
         }
 
-        List<Control> tempHintsList = new List<Control>();
-
-        void HideHints()
-        {
-            //temporarly remove hints
-            if (!ShowScrollBars && Hints.Count > 0)
-            {
-                (this as Control).SuspendLayout();
-
-                foreach (Control c in Controls)
-                    tempHintsList.Add(c);
-
-                Controls.Clear();
-            }
-        }
-
-        void RestoreHints()
-        {
-            //restore hints
-            if (!ShowScrollBars && Hints.Count > 0)
-            {
-                foreach (var c in tempHintsList)
-                    Controls.Add(c);
-
-                tempHintsList.Clear();
-
-                (this as Control).ResumeLayout(false);
-
-                if (!Focused)
-                    Focus();
-            }
-        }
-
         public void OnScroll(ScrollEventArgs se, bool alignByLines)
         {
-            HideHints();
-
             if (se.ScrollOrientation == ScrollOrientation.VerticalScroll)
             {
                 //align by line height
@@ -2944,8 +2855,6 @@ namespace FastColoredTextBoxNS
                 HorizontalScroll.Value = Math.Max(HorizontalScroll.Minimum, Math.Min(HorizontalScroll.Maximum, se.NewValue));
 
             UpdateScrollbars();
-
-            RestoreHints();
 
             Invalidate();
             //
@@ -3232,9 +3141,8 @@ namespace FastColoredTextBoxNS
                         cutOff = i;
                     }
                     else
-                    if (!char.IsLetterOrDigit(c) && c != '_' && c != '\'' && c != '\xa0' 
-                        && ((c != '.' && c!= ',') || !char.IsDigit(line[i + 1].c)))//dot before digit
-                        cutOff = Math.Min(i + 1, line.Count - 1);
+                        if (!char.IsLetterOrDigit(c) && c != '_' && c != '\'')
+                            cutOff = Math.Min(i + 1, line.Count - 1);
                 }
 
                 segmentLength++;
@@ -3296,10 +3204,8 @@ namespace FastColoredTextBoxNS
         /// Scroll control for display defined rectangle
         /// </summary>
         /// <param name="rect"></param>
-        internal void DoVisibleRectangle(Rectangle rect)
+        private void DoVisibleRectangle(Rectangle rect)
         {
-            HideHints();
-
             int oldV = VerticalScroll.Value;
             int v = VerticalScroll.Value;
             int h = HorizontalScroll.Value;
@@ -3334,8 +3240,6 @@ namespace FastColoredTextBoxNS
 
             UpdateScrollbars();
             //
-            RestoreHints();
-            //
             if (oldV != VerticalScroll.Value)
                 OnVisibleRangeChanged();
         }
@@ -3350,9 +3254,10 @@ namespace FastColoredTextBoxNS
                 //some magic for update scrolls
                 base.AutoScrollMinSize -= new Size(1, 0);
                 base.AutoScrollMinSize += new Size(1, 0);
+
             }
             else
-                PerformLayout();
+                AutoScrollMinSize = AutoScrollMinSize;
 
             if(IsHandleCreated)
                 BeginInvoke((MethodInvoker)OnScrollbarsUpdated);
@@ -3521,6 +3426,7 @@ namespace FastColoredTextBoxNS
             if (macrosManager != null)
             if (!HotkeysMapping.ContainsKey(keyData) || (HotkeysMapping[keyData] != FCTBAction.MacroExecute && HotkeysMapping[keyData] != FCTBAction.MacroRecord))
                 macrosManager.ProcessKey(keyData);
+
 
             if (HotkeysMapping.ContainsKey(keyData))
             {
@@ -4162,7 +4068,7 @@ namespace FastColoredTextBoxNS
         /// <summary>
         /// Convert selected text to upper case
         /// </summary>
-        public virtual void UpperCase()
+        public void UpperCase()
         {
             Range old = Selection.Clone();
             SelectedText = SelectedText.ToUpper();
@@ -4173,34 +4079,10 @@ namespace FastColoredTextBoxNS
         /// <summary>
         /// Convert selected text to lower case
         /// </summary>
-        public virtual void LowerCase()
+        public void LowerCase()
         {
             Range old = Selection.Clone();
             SelectedText = SelectedText.ToLower();
-            Selection.Start = old.Start;
-            Selection.End = old.End;
-        }
-
-        /// <summary>
-        /// Convert selected text to title case
-        /// </summary>
-        public virtual void TitleCase()
-        {
-            Range old = Selection.Clone();
-            SelectedText = Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(SelectedText.ToLower());
-            Selection.Start = old.Start;
-            Selection.End = old.End;
-        }
-
-        /// <summary>
-        /// Convert selected text to sentence case
-        /// </summary>
-        public virtual void SentenceCase()
-        {
-            Range old = Selection.Clone();
-            var lowerCase = SelectedText.ToLower();
-            var r = new Regex(@"(^\S)|[\.\?!:]\s+(\S)", RegexOptions.ExplicitCapture);
-            SelectedText = r.Replace(lowerCase, s => s.Value.ToUpper());
             Selection.Start = old.Start;
             Selection.End = old.End;
         }
@@ -4740,7 +4622,6 @@ namespace FastColoredTextBoxNS
             }
         }
 
-
         protected int GetMinStartSpacesCount(int fromLine, int toLine)
         {
             if (fromLine > toLine)
@@ -5035,11 +4916,24 @@ namespace FastColoredTextBoxNS
                                               new StringFormat(StringFormatFlags.DirectionRightToLeft));
                 //create markers
                 if (lineInfo.VisibleState == VisibleState.StartOfHiddenBlock)
-                    visibleMarkers.Add(new ExpandFoldingMarker(iLine, new Rectangle(LeftIndentLine - 4, y + CharHeight/2 - 3, 8, 8)));
+                    visibleMarkers.Add(new ExpandFoldingMarker(iLine, new Rectangle(LeftIndentLine - (MarkerImageSize.Width / 2),
+                                                                                    y + CharHeight / 2 - (MarkerImageSize.Height / 2 - 1),
+                                                                                    MarkerImageSize.Width,
+                                                                                    MarkerImageSize.Height)) {
+                        DrawImage = this.DrawImage,
+                        MinusImage = this.MinusImage,
+                        PlusImage = this.PlusImage,
+                    });
 
-                if (!string.IsNullOrEmpty(line.FoldingStartMarker) && lineInfo.VisibleState == VisibleState.Visible &&
-                    string.IsNullOrEmpty(line.FoldingEndMarker))
-                        visibleMarkers.Add(new CollapseFoldingMarker(iLine, new Rectangle(LeftIndentLine - 4, y + CharHeight/2 - 3, 8, 8)));
+                if (!string.IsNullOrEmpty(line.FoldingStartMarker) && lineInfo.VisibleState == VisibleState.Visible && string.IsNullOrEmpty(line.FoldingEndMarker))
+                    visibleMarkers.Add(new CollapseFoldingMarker(iLine, new Rectangle(LeftIndentLine - (MarkerImageSize.Width / 2),
+                                                                                      y + CharHeight / 2 - (MarkerImageSize.Height / 2 - 1),
+                                                                                      MarkerImageSize.Width,
+                                                                                      MarkerImageSize.Height)) {
+                        DrawImage = this.DrawImage,
+                        MinusImage = this.MinusImage,
+                        PlusImage = this.PlusImage,
+                    });
 
                 if (lineInfo.VisibleState == VisibleState.Visible && !string.IsNullOrEmpty(line.FoldingEndMarker) &&
                     string.IsNullOrEmpty(line.FoldingStartMarker))
@@ -5109,8 +5003,6 @@ namespace FastColoredTextBoxNS
             DrawMarkers(e, servicePen);
             //draw caret
             Point car = PlaceToPoint(Selection.Start);
-            var caretHeight = CharHeight - lineInterval;
-            car.Offset(0, lineInterval / 2);
 
             if ((Focused || IsDragDrop) && car.X >= LeftIndent && CaretVisible)
             {
@@ -5118,18 +5010,18 @@ namespace FastColoredTextBoxNS
                 if (WideCaret)
                 {
                     using (var brush = new SolidBrush(CaretColor))
-                        e.Graphics.FillRectangle(brush, car.X, car.Y, carWidth, caretHeight + 1);
+                        e.Graphics.FillRectangle(brush, car.X, car.Y, carWidth, CharHeight + 1);
                 }
                 else
                     using (var pen = new Pen(CaretColor))
-                        e.Graphics.DrawLine(pen, car.X, car.Y, car.X, car.Y + caretHeight);
+                        e.Graphics.DrawLine(pen, car.X, car.Y, car.X, car.Y + CharHeight);
 
-                var caretRect = new Rectangle(HorizontalScroll.Value + car.X, VerticalScroll.Value + car.Y, carWidth, caretHeight + 1);
+                var caretRect = new Rectangle(HorizontalScroll.Value + car.X, VerticalScroll.Value + car.Y, carWidth, charHeight + 1);
 
                 if (CaretBlinking)
                 if (prevCaretRect != caretRect || !ShowScrollBars)
                 {
-                    CreateCaret(Handle, 0, carWidth, caretHeight + 1);
+                    CreateCaret(Handle, 0, carWidth, CharHeight + 1);
                     SetCaretPos(car.X, car.Y);
                     ShowCaret(Handle);
                 }
@@ -5172,13 +5064,12 @@ namespace FastColoredTextBoxNS
         {
             foreach (VisualMarker m in visibleMarkers)
             {
-                if(m is CollapseFoldingMarker)
+                if (m is CollapseFoldingMarker)
                     using(var bk = new SolidBrush(ServiceColors.CollapseMarkerBackColor))
                     using(var fore = new Pen(ServiceColors.CollapseMarkerForeColor))
                     using(var border = new Pen(ServiceColors.CollapseMarkerBorderColor))
                         (m as CollapseFoldingMarker).Draw(e.Graphics, border, bk, fore);
-                else
-                if (m is ExpandFoldingMarker)
+                else if (m is ExpandFoldingMarker)
                     using (var bk = new SolidBrush(ServiceColors.ExpandMarkerBackColor))
                     using (var fore = new Pen(ServiceColors.ExpandMarkerForeColor))
                     using (var border = new Pen(ServiceColors.ExpandMarkerBorderColor))
@@ -5320,8 +5211,7 @@ namespace FastColoredTextBoxNS
                     }
         }
 
-        private void DrawLineChars(Graphics gr, int firstChar, int lastChar, int iLine, int iWordWrapLine, int startX,
-                                   int y)
+        private void DrawLineChars(Graphics gr, int firstChar, int lastChar, int iLine, int iWordWrapLine, int startX, int y)
         {
             Line line = lines[iLine];
             LineInfo lineInfo = LineInfos[iLine];
@@ -5620,7 +5510,6 @@ namespace FastColoredTextBoxNS
                 return 1;
             }
         }
-
 
         public void ChangeFontSize(int step)
         {
@@ -6385,9 +6274,11 @@ namespace FastColoredTextBoxNS
                 if (lines.LineHasFoldingStartMarker(i))
                 {
                     int iFinish = FindEndOfFoldingBlock(i);
+
                     if (iFinish >= 0)
                     {
                         CollapseBlock(i, iFinish);
+
                         i = iFinish;
                     }
                 }
@@ -6591,7 +6482,6 @@ namespace FastColoredTextBoxNS
             OnVisibleRangeChanged();
         }
 
-
         internal int FindNextVisibleLine(int iLine)
         {
             if (iLine >= lines.Count - 1) return iLine;
@@ -6604,7 +6494,6 @@ namespace FastColoredTextBoxNS
             else
                 return iLine;
         }
-
 
         internal int FindPrevVisibleLine(int iLine)
         {
@@ -6624,6 +6513,7 @@ namespace FastColoredTextBoxNS
             foreach (VisualMarker m in visibleMarkers)
                 if (m.rectangle.Contains(p))
                     return m;
+
             return null;
         }
 
@@ -6846,7 +6736,6 @@ namespace FastColoredTextBoxNS
             Invalidate();
         }
 
-
         /// <summary>
         /// Insert autoindents into selected lines
         /// </summary>
@@ -7032,39 +6921,17 @@ namespace FastColoredTextBoxNS
             //
             Range oldLeftBracketPosition = leftBracketPosition;
             Range oldRightBracketPosition = rightBracketPosition;
-            var range = GetBracketsRange(Selection.Start, LeftBracket, RightBracket, true);
-
-            if(range != null)
-            {
-                leftBracketPosition = new Range(this, range.Start, new Place(range.Start.iChar + 1, range.Start.iLine));
-                rightBracketPosition = new Range(this, new Place(range.End.iChar - 1, range.End.iLine), range.End);
-            }
-
-            if (oldLeftBracketPosition != leftBracketPosition ||
-                oldRightBracketPosition != rightBracketPosition)
-                Invalidate();
-        }
-
-        /// <summary>
-        /// Returns range between brackets (or null if not found)
-        /// </summary>
-        public Range GetBracketsRange(Place placeInsideBrackets, char leftBracket, char rightBracket, bool includeBrackets)
-        {
-            var startRange = new Range(this, placeInsideBrackets, placeInsideBrackets);
-            var range = startRange.Clone();
-
-            Range leftBracketPosition = null;
-            Range rightBracketPosition = null;
-
+            Range range = Selection.Clone(); //need clone because we will move caret
             int counter = 0;
             int maxIterations = maxBracketSearchIterations;
             while (range.GoLeftThroughFolded()) //move caret left
             {
-                if (range.CharAfterStart == leftBracket) counter++;
-                if (range.CharAfterStart == rightBracket) counter--;
+                if (range.CharAfterStart == LeftBracket) counter++;
+                if (range.CharAfterStart == RightBracket) counter--;
                 if (counter == 1)
                 {
-                    range.Start = new Place(range.Start.iChar + (!includeBrackets ? 1 : 0), range.Start.iLine);
+                    //highlighting
+                    range.End = new Place(range.Start.iChar + 1, range.Start.iLine);
                     leftBracketPosition = range;
                     break;
                 }
@@ -7073,16 +6940,17 @@ namespace FastColoredTextBoxNS
                 if (maxIterations <= 0) break;
             }
             //
-            range = startRange.Clone();
+            range = Selection.Clone(); //need clone because we will move caret
             counter = 0;
             maxIterations = maxBracketSearchIterations;
             do
             {
-                if (range.CharAfterStart == leftBracket) counter++;
-                if (range.CharAfterStart == rightBracket) counter--;
+                if (range.CharAfterStart == LeftBracket) counter++;
+                if (range.CharAfterStart == RightBracket) counter--;
                 if (counter == -1)
                 {
-                    range.End = new Place(range.Start.iChar + (includeBrackets ? 1 : 0 ), range.Start.iLine);
+                    //highlighting
+                    range.End = new Place(range.Start.iChar + 1, range.Start.iLine);
                     rightBracketPosition = range;
                     break;
                 }
@@ -7091,10 +6959,9 @@ namespace FastColoredTextBoxNS
                 if (maxIterations <= 0) break;
             } while (range.GoRightThroughFolded()); //move caret right
 
-            if (leftBracketPosition != null && rightBracketPosition != null)
-                return new Range(this, leftBracketPosition.Start, rightBracketPosition.End);
-            else
-                return null;
+            if (oldLeftBracketPosition != leftBracketPosition ||
+                oldRightBracketPosition != rightBracketPosition)
+                Invalidate();
         }
 
         private void HighlightBrackets2(char LeftBracket, char RightBracket, ref Range leftBracketPosition, ref Range rightBracketPosition)
@@ -8153,7 +8020,6 @@ window.status = ""#print"";
 
         #endregion
 
-
         #region Nested type: LineYComparer
 
         private class LineYComparer : IComparer<LineInfo>
@@ -8181,7 +8047,8 @@ window.status = ""#print"";
         #endregion
     }
 
-    public class PaintLineEventArgs : PaintEventArgs
+    public class PaintLineEventArgs
+        : PaintEventArgs
     {
         public PaintLineEventArgs(int iLine, Rectangle rect, Graphics gr, Rectangle clipRect) : base(gr, clipRect)
         {
@@ -8193,7 +8060,8 @@ window.status = ""#print"";
         public Rectangle LineRect { get; private set; }
     }
 
-    public class LineInsertedEventArgs : EventArgs
+    public class LineInsertedEventArgs
+        : EventArgs
     {
         public LineInsertedEventArgs(int index, int count)
         {
@@ -8212,7 +8080,8 @@ window.status = ""#print"";
         public int Count { get; private set; }
     }
 
-    public class LineRemovedEventArgs : EventArgs
+    public class LineRemovedEventArgs
+        : EventArgs
     {
         public LineRemovedEventArgs(int index, int count, List<int> removedLineIds)
         {
@@ -8240,7 +8109,8 @@ window.status = ""#print"";
     /// <summary>
     /// TextChanged event argument
     /// </summary>
-    public class TextChangedEventArgs : EventArgs
+    public class TextChangedEventArgs
+        : EventArgs
     {
         /// <summary>
         /// Constructor
@@ -8256,7 +8126,8 @@ window.status = ""#print"";
         public Range ChangedRange { get; set; }
     }
 
-    public class TextChangingEventArgs : EventArgs
+    public class TextChangingEventArgs
+        : EventArgs
     {
         public string InsertingText { get; set; }
 
@@ -8266,7 +8137,8 @@ window.status = ""#print"";
         public bool Cancel { get; set; }
     }
 
-    public class WordWrapNeededEventArgs : EventArgs
+    public class WordWrapNeededEventArgs
+        : EventArgs
     {
         public List<int> CutOffPositions { get; private set;}
         public bool ImeAllowed { get; private set;}
@@ -8347,7 +8219,8 @@ window.status = ""#print"";
         public bool IncludeLineNumbers { get; set; }
     }
 
-    public class AutoIndentEventArgs : EventArgs
+    public class AutoIndentEventArgs
+        : EventArgs
     {
         public AutoIndentEventArgs(int iLine, string lineText, string prevLineText, int tabLength, int currentIndentation)
         {
@@ -8421,7 +8294,8 @@ window.status = ""#print"";
     /// <summary>
     /// ToolTipNeeded event args
     /// </summary>
-    public class ToolTipNeededEventArgs : EventArgs
+    public class ToolTipNeededEventArgs
+        : EventArgs
     {
         public ToolTipNeededEventArgs(Place place, string hoveredWord)
         {
@@ -8439,7 +8313,8 @@ window.status = ""#print"";
     /// <summary>
     /// HintClick event args
     /// </summary>
-    public class HintClickEventArgs : EventArgs
+    public class HintClickEventArgs
+        : EventArgs
     {
         public HintClickEventArgs(Hint hint)
         {
@@ -8452,7 +8327,8 @@ window.status = ""#print"";
     /// <summary>
     /// CustomAction event args
     /// </summary>
-    public class CustomActionEventArgs : EventArgs
+    public class CustomActionEventArgs
+        : EventArgs
     {
         public FCTBAction Action { get; private set; }
 
@@ -8470,7 +8346,8 @@ window.status = ""#print"";
     }
 
     [Flags]
-    public enum ScrollDirection : ushort
+    public enum ScrollDirection
+        : ushort
     {
         None = 0,
         Left = 1,

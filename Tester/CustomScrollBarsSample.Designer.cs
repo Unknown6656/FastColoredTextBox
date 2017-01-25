@@ -53,7 +53,7 @@
             // 
             this.vScrollBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.vScrollBar.Location = new System.Drawing.Point(359, 62);
+            this.vScrollBar.Location = new System.Drawing.Point(360, 60);
             this.vScrollBar.Name = "vScrollBar";
             this.vScrollBar.Size = new System.Drawing.Size(17, 181);
             this.vScrollBar.TabIndex = 8;
@@ -93,7 +93,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.vMyScrollBar.BackColor = System.Drawing.Color.Gold;
             this.vMyScrollBar.BorderColor = System.Drawing.Color.Gray;
-            this.vMyScrollBar.Location = new System.Drawing.Point(314, 62);
+            this.vMyScrollBar.Location = new System.Drawing.Point(313, 62);
             this.vMyScrollBar.Maximum = 100;
             this.vMyScrollBar.Name = "vMyScrollBar";
             this.vMyScrollBar.Orientation = System.Windows.Forms.ScrollOrientation.VerticalScroll;
@@ -121,8 +121,8 @@
         '\"',
         '\'',
         '\''};
-            this.fctb.AutoIndentCharsPatterns = "\n^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;]+);\n^\\s*(case|default)\\s*[^:]*(" +
-    "?<range>:)\\s*(?<range>[^;]+);\n";
+            this.fctb.AutoIndentCharsPatterns = "\r\n^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;]+);\r\n^\\s*(case|default)\\s*[^:]" +
+    "*(?<range>:)\\s*(?<range>[^;]+);\r\n";
             this.fctb.AutoScrollMinSize = new System.Drawing.Size(284, 315);
             this.fctb.BackBrush = null;
             this.fctb.BackColor = System.Drawing.Color.Gold;
@@ -144,7 +144,6 @@
             this.fctb.RightBracket = ')';
             this.fctb.RightBracket2 = '}';
             this.fctb.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
-            this.fctb.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("fctb.ServiceColors")));
             this.fctb.ServiceLinesColor = System.Drawing.Color.DarkGray;
             this.fctb.ShowScrollBars = false;
             this.fctb.Size = new System.Drawing.Size(227, 179);

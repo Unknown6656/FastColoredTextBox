@@ -122,47 +122,27 @@
             // 
             // fctb
             // 
-            this.fctb.AutoCompleteBracketsList = new char[] {
-        '(',
-        ')',
-        '{',
-        '}',
-        '[',
-        ']',
-        '\"',
-        '\"',
-        '\'',
-        '\''};
-            this.fctb.AutoIndentCharsPatterns = "\n^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;]+);\n^\\s*(case|default)\\s*[^:]*(" +
-    "?<range>:)\\s*(?<range>[^;]+);\n";
             this.fctb.AutoScrollMinSize = new System.Drawing.Size(0, 290);
             this.fctb.BackBrush = null;
-            this.fctb.BracketsHighlightStrategy = FastColoredTextBoxNS.BracketsHighlightStrategy.Strategy2;
-            this.fctb.CharHeight = 15;
-            this.fctb.CharWidth = 7;
             this.fctb.Cursor = System.Windows.Forms.Cursors.IBeam;
             this.fctb.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
             this.fctb.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.fctb.Font = new System.Drawing.Font("Consolas", 9.75F);
+            this.fctb.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.fctb.IsReplaceMode = false;
             this.fctb.Language = FastColoredTextBoxNS.Language.CSharp;
             this.fctb.LeftBracket = '(';
-            this.fctb.LeftBracket2 = '{';
             this.fctb.Location = new System.Drawing.Point(0, 87);
             this.fctb.Name = "fctb";
             this.fctb.PaddingBackColor = System.Drawing.Color.WhiteSmoke;
             this.fctb.Paddings = new System.Windows.Forms.Padding(10);
             this.fctb.RightBracket = ')';
-            this.fctb.RightBracket2 = '}';
             this.fctb.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(50)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
-            this.fctb.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("fctb.ServiceColors")));
             this.fctb.Size = new System.Drawing.Size(491, 399);
             this.fctb.TabIndex = 0;
             this.fctb.Text = resources.GetString("fctb.Text");
             this.fctb.TextAreaBorder = FastColoredTextBoxNS.TextAreaBorderType.Shadow;
             this.fctb.TextAreaBorderColor = System.Drawing.Color.Gray;
             this.fctb.WordWrap = true;
-            this.fctb.Zoom = 100;
             this.fctb.HintClick += new System.EventHandler<FastColoredTextBoxNS.HintClickEventArgs>(this.fctb_HintClick);
             // 
             // HintSample

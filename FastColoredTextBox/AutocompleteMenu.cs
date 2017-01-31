@@ -12,9 +12,10 @@ namespace FastColoredTextBoxNS
     /// Popup menu for autocomplete
     /// </summary>
     [Browsable(false)]
-    public class AutocompleteMenu : ToolStripDropDown
+    public class AutocompleteMenu
+        : ToolStripDropDown
     {
-        AutocompleteListView listView;
+        private AutocompleteListView listView;
         public ToolStripControlHost host;
         public Range Fragment { get; internal set; }
 
@@ -134,11 +135,7 @@ namespace FastColoredTextBoxNS
                 Selected(this, args);
         }
 
-        public new AutocompleteListView Items
-        {
-            get { return listView; }
-        }
-
+        public new AutocompleteListView Items => listView;
         /// <summary>
         /// Shows popup menu immediately
         /// </summary>
@@ -185,34 +182,38 @@ namespace FastColoredTextBoxNS
         }
     }
 
-    [System.ComponentModel.ToolboxItem(false)]
-    public class AutocompleteListView : UserControl
+    [ToolboxItem(false)]
+    public class AutocompleteListView
+        : UserControl
     {
         public event EventHandler FocussedItemIndexChanged;
 
         internal List<AutocompleteItem> visibleItems;
-        IEnumerable<AutocompleteItem> sourceItems = new List<AutocompleteItem>();
-        int focussedItemIndex = 0;
-        int hoveredItemIndex = -1;
+        private IEnumerable<AutocompleteItem> sourceItems = new List<AutocompleteItem>();
+        private int focussedItemIndex = 0;
+        private int hoveredItemIndex = -1;
 
-        private int ItemHeight
-        {
-            get { return Font.Height + 2; }
-        }
-
-        AutocompleteMenu Menu { get { return Parent as AutocompleteMenu; } }
-        int oldItemCount = 0;
-        FastColoredTextBox tb;
+        private int ItemHeight => Font.Height + 2;
         internal ToolTip toolTip = new ToolTip();
-        System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
+        private AutocompleteMenu Menu => Parent as AutocompleteMenu;
+        private int oldItemCount = 0;
+        private FastColoredTextBox tb;
+        private Timer timer = new Timer();
 
         internal bool AllowTabKey { get; set; }
         public ImageList ImageList { get; set; }
-        internal int AppearInterval { get { return timer.Interval; } set { timer.Interval = value; } }
         internal int ToolTipDuration { get; set; }
-
         public Color SelectedColor { get; set; }
         public Color HoveredColor { get; set; }
+
+        public int Count => visibleItems.Count;
+
+        internal int AppearInterval
+        {
+            get => timer.Interval;
+            set => timer.Interval = value;
+        }
+
         public int FocussedItemIndex
         {
             get { return focussedItemIndex; }
@@ -240,6 +241,7 @@ namespace FastColoredTextBoxNS
                 FocussedItemIndex = visibleItems.IndexOf(value);
             }
         }
+
 
         internal AutocompleteListView(FastColoredTextBox tb)
         {
@@ -284,7 +286,7 @@ namespace FastColoredTextBoxNS
             };
         }
 
-        void tb_KeyPressed(object sender, KeyPressEventArgs e)
+        private void tb_KeyPressed(object sender, KeyPressEventArgs e)
         {
             bool backspaceORdel = e.KeyChar == '\b' || e.KeyChar == 0xff;
 
@@ -298,13 +300,13 @@ namespace FastColoredTextBoxNS
                 ResetTimer(timer);
         }
 
-        void timer_Tick(object sender, EventArgs e)
+        private void timer_Tick(object sender, EventArgs e)
         {
             timer.Stop();
             DoAutocomplete(false);
         }
 
-        void ResetTimer(System.Windows.Forms.Timer timer)
+        private void ResetTimer(Timer timer)
         {
             timer.Stop();
             timer.Start();
@@ -380,7 +382,7 @@ namespace FastColoredTextBoxNS
                 Menu.Close();
         }
 
-        void tb_SelectionChanged(object sender, EventArgs e)
+        private void tb_SelectionChanged(object sender, EventArgs e)
         {
             /*
             FastColoredTextBox tb = sender as FastColoredTextBox;
@@ -396,9 +398,9 @@ namespace FastColoredTextBoxNS
                 if (!tb.Selection.IsEmpty)
                     needClose = true;
                 else
-                    if (!Menu.Fragment.Contains(tb.Selection.Start))
+                    if (!(Menu.Fragment?.Contains(tb.Selection.Start) ?? false))
                     {
-                        if (tb.Selection.Start.iLine == Menu.Fragment.End.iLine && tb.Selection.Start.iChar == Menu.Fragment.End.iChar + 1)
+                        if ((tb.Selection.Start.iLine == Menu.Fragment?.End.iLine) && (tb.Selection.Start.iChar == Menu.Fragment?.End.iChar + 1))
                         {
                             //user press key at end of fragment
                             char c = tb.Selection.CharBeforeStart;
@@ -412,10 +414,9 @@ namespace FastColoredTextBoxNS
                 if (needClose)
                     Menu.Close();
             }
-            
         }
 
-        void tb_KeyDown(object sender, KeyEventArgs e)
+        private void tb_KeyDown(object sender, KeyEventArgs e)
         {
             var tb = sender as FastColoredTextBox;
 
@@ -438,7 +439,7 @@ namespace FastColoredTextBoxNS
             }
         }
 
-        void AdjustScroll()
+        private void AdjustScroll()
         {
             if (oldItemCount == visibleItems.Count)
                 return;
@@ -592,15 +593,12 @@ namespace FastColoredTextBoxNS
             tb.Focus();
         }
 
-        int PointToItemIndex(Point p)
-        {
-            return (p.Y + VerticalScroll.Value) / ItemHeight;
-        }
+        private int PointToItemIndex(Point p) => (p.Y + VerticalScroll.Value) / ItemHeight;
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
             ProcessKey(keyData, Keys.None);
-            
+
             return base.ProcessCmdKey(ref msg, keyData);
         }
 
@@ -685,11 +683,6 @@ namespace FastColoredTextBoxNS
                 toolTip.ToolTipTitle = title;
                 toolTip.Show(text, window, location.X, location.Y, ToolTipDuration);
             }
-        }
-
-        public int Count
-        {
-            get { return visibleItems.Count; }
         }
 
         public void SetAutocompleteItems(ICollection<string> items)

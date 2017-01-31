@@ -136,14 +136,12 @@ namespace FastColoredTextBoxNS
         }
 
         public new AutocompleteListView Items => listView;
+
         /// <summary>
         /// Shows popup menu immediately
         /// </summary>
         /// <param name="forced">If True - MinFragmentLength will be ignored</param>
-        public void Show(bool forced)
-        {
-            Items.DoAutocomplete(forced);
-        }
+        public void Show(bool forced) => Items.DoAutocomplete(forced);
 
         /// <summary>
         /// Minimal size of menu
@@ -343,14 +341,19 @@ namespace FastColoredTextBoxNS
                 && (tb.Selection.Start > fragment.Start || text.Length == 0/*pops up only if caret is after first letter*/)))
             {
                 Menu.Fragment = fragment;
+
                 bool foundSelected = false;
+
                 //build popup menu
-                foreach (var item in sourceItems)
+                foreach (AutocompleteItem item in sourceItems)
                 {
                     item.Parent = Menu;
+
                     CompareResult res = item.Compare(text);
-                    if(res != CompareResult.Hidden)
+
+                    if (res != CompareResult.Hidden)
                         visibleItems.Add(item);
+
                     if (res == CompareResult.VisibleAndSelected && !foundSelected)
                     {
                         foundSelected = true;
